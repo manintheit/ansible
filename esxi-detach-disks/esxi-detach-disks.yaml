@@ -1,0 +1,16 @@
+#To Detach disks
+#esxcli storage core device set -d naa.xxx... --state=off
+---
+- hosts: all
+  tasks:
+  - name: Detach the disks in the list
+    shell: esxcli storage core device set --state=off  -d "{{ item }}"
+    with_items:
+      - naa.600601604b00330098a2b95afe72e811
+      - naa.600601604b0033009aa2b95afe72e811
+      - naa.600601604b0033009ca2b95afe72e811
+      - naa.600601604b0033009ea2b95afe72e811  
+      - naa.600601604b003300a0a2b95afe72e811
+      - naa.600601604b003300a2a2b95afe72e811
+    register: output
+  - debug: msg="{{ output }}"
