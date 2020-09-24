@@ -1,0 +1,46 @@
+---
+# tasks file for syslog
+
+- name: import commands 
+  import_tasks: set_command.yaml
+
+# - name: import facts 
+#   import_tasks: set_pkg_mgr.yaml
+
+
+# - name: Check if package installed
+#   shell: "{{pkg_mgr}} {{opts}} {{pkg_name}}"
+#   register: result_pkg
+#   ignore_errors: yes
+
+- name: Checking if syslog forwarding configured correctly.
+  shell: "{{ cmd }}"
+  register: cmd_output
+  ignore_errors: yes
+#- debug: msg={{cmd_output}}
+
+
+- name: Create a log
+  debug: msg="[ERROR] [{{ ansible_hostname  }}] [R]SYSLOG IS  **NOT NOT NOT** CONFIGURED!  }}"
+  when: cmd_output.rc > 0
+ 
+
+- name: Create a log
+  debug: msg="[INFO] {{ ansible_hostname  }}] [R]SYSLOG IS  CONFIGURED. }}"
+  when: cmd_output.rc == 0
+
+
+
+# - name: Create a log
+#   debug: msg="[ERROR] [{{ ansible_hostname  }}] {{ pkg_name }} is NOT available in the system  }}"
+#   when: result_pkg.rc > 0
+
+# - name: Create a log
+#   debug: msg="[INFO] [{{ ansible_hostname  }}] {{ pkg_name }} is  available in the system }}"
+#   when: result_pkg.rc == 0
+
+
+
+  
+
+

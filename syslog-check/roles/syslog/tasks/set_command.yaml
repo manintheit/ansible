@@ -1,0 +1,48 @@
+---
+- name: Check if netstat available
+  shell: |
+    command -v netstat
+  register: netstat
+  ignore_errors: yes
+
+- name: Check if ss available
+  shell: |
+     command -v ss
+  register: ss
+  ignore_errors: yes
+
+- name: Check if lsof available
+  shell: |
+    command -v lsof
+  register: lsof
+  ignore_errors: yes
+########################################################################################3
+- name: Define command to be used
+  set_fact: 
+    cmd:  netstat -tulpan | tr -s ' ' | egrep  ':514\s+|:601\s+|:35514\s+|:9001\s+|:9002\s+|:9003\s+|:9004\s+|:9005\s+|:9010\s+|:9020\s+' | egrep 'syslog|rsyslog' | egrep '10.5.100.20|10.90.20.20' | egrep 'ESTABLISHED'
+  when: (netstat.rc == 0)
+
+- name: Define command to be used
+  set_fact: 
+    cmd: ss -tulpan | tr -s ' ' | egrep  ':514\s+|:601\s+|:35514\s+|:9001\s+|:9002\s+|:9003\s+|:9004\s+|:9005\s+|:9010\s+|:9020\s+' | egrep 'syslog|rsyslog' | egrep '10.5.100.20|10.90.20.20' | egrep 'ESTAB'
+    when: ((ss.rc == 0) and (netstat.rc != 0 or lsof.rc != 0))
+
+- name: Define command to be used
+  set_fact: 
+    cmd:  lsof -nP | tr -s ' ' | egrep -e ':514\s+|:601\s+|:35514\s+|:9001\s+|:9002\s+|:9003\s+|:9004\s+|:9005\s+|:9010\s+|:9020\s+' | egrep 'syslog|rsyslog' | egrep '10.5.100.20|10.90.20.20' | egrep 'ESTABLISHED'
+  when: ((lsof.rc == 0) and (netstat.rc != 0 or ss.rc !=0)) 
+
+
+- name: set failed if no tool exist
+  shell: echo -e "FAILED THERE IS NO TOOL TO CHECK CONNECTION; INSTALL netstat or lsof or ss"
+  failed_when: (netstat.rc != 0 and ss.rc != 0 and lsof.rc != 0)
+
+
+
+
+
+
+
+
+
+

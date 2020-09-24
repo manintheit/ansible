@@ -1,0 +1,17 @@
+---
+- name: Set Package manager for Red Hat
+  set_fact:
+    pkg_mgr: "rpm"
+    opts: "-q"
+    pkg_name: "rsyslog"
+  when: ansible_facts['os_family'] in ["RedHat", "Suse"]  
+
+
+- name: Set Package manager for Debian
+  set_fact:
+    pkg_mgr: "dpkg"
+    opts: "-s"
+    pkg_name: "rsyslog"
+  when: ansible_facts['os_family'] in ["Debian"] 
+
+
