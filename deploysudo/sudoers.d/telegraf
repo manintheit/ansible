@@ -1,0 +1,4 @@
+##################ANSIBLE MANAGED BLOCK#######################
+Cmnd_Alias VGMON_CMD = /sbin/pvdisplay --units g, /sbin/vgdisplay --units g
+telegraf ALL = (root) NOPASSWD: VGMON_CMD
+##############################################################  

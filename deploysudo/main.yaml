@@ -1,0 +1,16 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: check if rules file exists
+    stat: 
+      path: /etc/sudoers.d/telegraf
+    register: telegraf_fcheck
+
+  - name: Add user "demo" to run pvdisplay and vgdisplay commands with sudo privilidge."
+    blockinfile:
+      block: "{{ lookup('file', 'sudoers.d/telegraf') }}"
+      dest: "/etc/sudoers.d/telegraf"
+      create: yes
+      validate: "/sbin/visudo -cf %s"
+    when: telegraf_fcheck.stat.exists == false
