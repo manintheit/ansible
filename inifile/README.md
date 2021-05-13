@@ -1,11 +1,11 @@
-## Ansible Modify Multiple INI Sections ##
+## Modify Multiple INI Sections with Ansible  ##
 
-Ansible module ```ini_file``` plugin has limitation, one of the its that, it can modify one section at a time. So, if you have multiple ini sections
+Ansible ```ini_file``` plugin has limitation, one of the its that, it can modify one section at a time. So, if you have multiple ini sections
 in a file, you have to use it for every section. But with following Ansible playbook, this limitation has been lifted.
 
 ## Installing Collection
 
-In order to use ```ini_file``` pluging, you have to install  ```community.general``` collection, as it is part of  ```community.general``` collection.
+In order to use ```ini_file``` plugin, you have to install  ```community.general``` collection, as it is part of  ```community.general``` collection.
 
 
 ```bash
@@ -17,7 +17,7 @@ $ ansible-galaxy collection install community.general
 ```yml
 ---
 #main.yml
-- hosts: localhost
+- hosts: all
   tasks:
     - name: Get Files
       shell: ls $HOME/yum.conf $HOME/yum.repos.d/*.repo
@@ -77,3 +77,14 @@ enabled = 0
 gpgcheck = 0
 enabled_metadata = 0
 ```
+
+## Ad-hoc to check
+```bash
+ansible all -m shell -a   "hostname && egrep '^\[[a-zA-Z0-9_-]+\]$|gpgcheck' /etc/yum.conf /etc/yum.repos.d/*.repo"
+```
+
+
+
+
+
+
