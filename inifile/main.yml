@@ -1,0 +1,27 @@
+---
+
+- hosts: localhost
+  tasks:
+    - name: Get Files
+      shell: ls $HOME/yum.conf $HOME/yum.repos.d/*.repo
+      register: files
+      ignore_errors: yes
+
+    - name: Get INI Sections on files.
+      shell: egrep '^\[[a-zA-Z0-9_-]+\](\s+)?$'  "{{ item }}" | tr -d '[]'
+      loop: "{{ files.stdout_lines }}"
+      register: ini_sections
+
+    - name: debug ini sections
+      debug: msg="{{ ini_sections }}"
+
+    - name: Modify ini sections
+      community.general.ini_file:
+        path: "{{ item.0.item }}"
+        section: "{{ item.1 }}"
+        option: gpgcheck
+        value: 1
+      with_subelements:
+        - "{{ ini_sections.results }}" 
+        - stdout_lines
+
