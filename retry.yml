@@ -16,3 +16,25 @@
       delay: 5
     - debug:
         msg: "{{ content }}"
+
+
+
+ - name: Check that the somefile.conf exists
+      stat:
+        path: /root/.uefi
+      register: stat_result
+      retries: 10
+      delay: 25
+      until: stat_result.stat.exists
+      delegate_to: ubuntu
+      become: yes
+      remote_user: test
+        
+    - name: Wait for the reboot and reconnect 
+      wait_for:
+        port: 22
+        host: "ubuntu"
+        search_regex: OpenSSH
+        delay: 10
+        timeout: 60
+      connection: local
