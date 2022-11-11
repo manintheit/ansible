@@ -1,0 +1,54 @@
+---
+# 'Satellite' is used interchangeably with 'Foreman'
+- hosts:  localhost
+  connection: local
+  gather_facts: False
+  vars:
+    # export VAULT_ADDR before running the playbok
+    hashi_vault_addr: "{{ lookup('env', 'VAULT_ADDR') }}"
+    # export VAULT_TOKEN before running the playbok
+    hashi_vault_token: "{{ lookup('env', 'VAULT_TOKEN')  }}"
+    compute_profile:
+      address:
+      - url: "https://satellite1"
+        foreman_user: "secret/test/sat1:foreman_user"
+        foreman_password: "secret/test/sat1:foreman_password"
+        profiles:
+        # 'name' must be match the compute profiles in Satellite
+        # 'vault_secret' is the hashi corp secret location (v2)
+          - name: "cp1_1"
+            vault_secret: "secret/test/sat1:cp1_1"
+          - name: "cp1_2"
+            vault_secret: "secret/test/sat1:cp1_2"
+      - url:  "https://satellite2"
+        foreman_user: "secret/test/sat2:foreman_user"
+        foreman_password: "secret/test/sat2:foreman_password"
+        profiles:
+          - name: "cp2_1"
+            vault_secret: "secret/test/sat2:cp2_1"
+  tasks:
+    - name:  compute resource debug
+      debug:
+        # v2
+        #msg: "{{ item.0.url }} --- {{ lookup('hashi_vault', 'secret={}:data'.format(item.0.foreman_user))['value'] }} --- {{ lookup('hashi_vault', 'secret={}:data'.format(item.0.foreman_password))['value'] }} --- {{ item.1.name }} --- {{ lookup('hashi_vault', 'secret={}:data'.format(item.1.vault_secret))['value'] }}"
+        # v1
+        msg: "{{ item.0.url }} --- {{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.0.foreman_user)) }} --- {{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.0.foreman_password)) }} --- {{ item.1.name }} --- {{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.1.vault_secret)) }}"
+      with_subelements:
+      - "{{ compute_profile.address }}"
+      - profiles
+
+    - name: update vmware compute resource
+      theforeman.foreman.compute_resource:
+        name: "{{ item.1.name }}"
+        description: "Ansible Managed - Last update: {{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
+        validate_certs: no
+        provider: vmware
+        provider_params:
+          password: "{{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.1.vault_secret)) }}"
+        server_url: "{{ item.0.url }}"
+        username: "{{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.0.foreman_user)) }}"
+        password: "{{ lookup('hashi_vault', 'secret={} validate_certs=False'.format(item.0.foreman_password)) }}"
+        state: present
+      with_subelements:
+      - "{{ compute_profile.address }}"
+      - profiles
